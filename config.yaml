@@ -1,0 +1,369 @@
+project:
+
+  name: video_to_3d
+
+  scene_mode: static
+
+
+# ================================================================
+# INPUT
+# ================================================================
+
+input:
+
+  video_dir: input/videos
+
+
+# ================================================================
+# OUTPUT
+# ================================================================
+
+output:
+
+  root: output
+
+  frames: output/frames
+
+  selected: output/selected
+
+  features: output/features
+
+  matches: output/matches
+
+
+# ================================================================
+# RECONSTRUCTION
+# ================================================================
+
+reconstruction:
+
+  root: reconstruction
+
+  sfm_engine: glomap
+
+  database: reconstruction/database.db
+
+  calibrated_database: reconstruction/database_global.db
+
+  sparse: reconstruction/sparse
+
+  min_images: 3
+
+  min_keypoints: 1000
+
+  min_matches: 500
+
+  min_verified_pairs: 2
+
+  colmap_executable: "C:/colmap-x64-windows-cuda/COLMAP.bat"
+
+  glomap:
+
+    min_num_matches: 15
+
+    num_threads: -1
+
+    gpu_index: 0
+
+
+# ================================================================
+# PROCESSING
+# ================================================================
+
+processing:
+
+  priority: balanced
+
+  quality_floor: true
+
+
+# ================================================================
+# LOD
+# ================================================================
+
+lod:
+
+  mode: auto
+
+
+# ================================================================
+# EXPORT
+# ================================================================
+
+export:
+
+  ply: true
+
+
+# ================================================================
+# SAMPLING
+# ================================================================
+
+sampling:
+
+  target_fps: 10
+
+  image_format: jpg
+
+  jpeg_quality: 95
+
+
+# ================================================================
+# FILTERING
+# ================================================================
+
+filtering:
+
+  min_blur_score: 45.0
+
+  min_quality_score: 0.25
+
+  max_hash_distance: 0
+
+
+# ================================================================
+# FRAME SELECTION
+# ================================================================
+
+selection:
+  min_frames: 80
+  min_interval: 0.10
+  max_interval: 0.60
+  min_difference: 4.0
+
+
+# ================================================================
+# FEATURES
+# ================================================================
+
+features:
+
+  max_keypoints: 8192
+
+
+# ================================================================
+# MATCHING
+# ================================================================
+
+matching:
+
+  engine: lightglue
+  feature_model: superpoint
+
+  # Drone footage needs enough temporal overlap.
+  temporal_window: 12
+  pair_stride: 1
+
+  # Additional non-local connections.
+  global_candidates: 8
+  global_similarity: 0.80
+
+  max_num_keypoints: 8192
+
+  depth_confidence: 0.95
+  width_confidence: 0.99
+
+  filter_threshold: 0.1
+
+  # Raw LightGlue matches.
+  min_matches: 40
+
+  # Geometrically verified matches.
+  min_inliers: 20
+  min_inlier_ratio: 0.20
+
+  min_spatial_coverage: 0.08
+  min_axis_coverage: 0.12
+
+  min_match_score: 0.20
+  min_median_match_score: 0.30
+
+  max_match_concentration: 0.92
+
+  ransac_threshold: 1.0
+  ransac_confidence: 0.999
+
+# ================================================================
+# CAMERA
+# ================================================================
+
+camera:
+
+  model: SIMPLE_RADIAL
+
+  shared: true
+
+  focal_length_factor: 1.2
+
+  refine_focal_length: true
+
+
+# ================================================================
+# GAUSSIAN SPLATTING
+# ================================================================
+
+gaussian:
+    # --------------------------------------------------------------
+  # DATASET / TRAINING INPUT
+  # --------------------------------------------------------------
+
+  training:
+
+    # Maximum image dimension used during Gaussian training.
+    # Images larger than this are downscaled while preserving
+    # aspect ratio.
+    max_resolution: 1600
+  # --------------------------------------------------------------
+  # Renderer
+  # --------------------------------------------------------------
+
+  absgrad: true
+
+  radius_clip: 0.0
+
+  eps2d: 0.3
+
+  near_plane: 0.01
+
+  far_plane: 1000.0
+
+  rasterize_mode: classic
+
+  # --------------------------------------------------------------
+  # Initialization / reconstruction filtering
+  # --------------------------------------------------------------
+
+  min_track_length: 4
+
+  max_reprojection_error: 1.5
+
+  min_points: 300
+
+  scale_neighbors: 1
+
+  # --------------------------------------------------------------
+  # Optimization
+  # --------------------------------------------------------------
+
+  optimization:
+
+    # ============================================================
+    # TRAINING
+    # ============================================================
+
+    iterations: 4000
+
+    checkpoint_interval: 500
+
+
+    # ============================================================
+    # LEARNING RATES
+    # ============================================================
+
+    # Recommended final starting value:
+    #
+    # 0.0002
+    #
+    # Trainer applies warmup + decay.
+
+    learning_rate_position: 0.0002
+
+    learning_rate_scale: 0.003
+
+    learning_rate_rotation: 0.001
+
+    learning_rate_opacity: 0.03
+
+    learning_rate_sh: 0.0025
+
+
+    # ============================================================
+    # LOSS
+    # ============================================================
+
+    lambda_l1: 0.8
+
+    lambda_ssim: 0.2
+
+    lambda_edge: 0.05
+
+    lambda_multiscale: 0.03
+
+
+    # ============================================================
+    # POSITION LR SCHEDULE
+    # ============================================================
+
+    position_warmup: 500
+
+    position_lr_final_factor: 0.05
+
+
+    # ============================================================
+    # PROGRESSIVE SH
+    # ============================================================
+
+    progressive_sh: true
+
+    sh_degree: 3
+
+    sh_start_degree: 0
+
+    sh_degree_1_iter: 1000
+
+    sh_degree_2_iter: 2000
+
+    sh_degree_3_iter: 4000
+
+
+    # ============================================================
+    # DETAIL LOSS
+    # ============================================================
+
+    detail_downsample: 2
+
+    detail_blur_kernel: 3
+
+
+    # ============================================================
+    # DENSIFICATION / PRUNING
+    # ============================================================
+
+    refine_start_iter: 1000
+
+    refine_stop_iter: 1000
+
+    refine_every: 100
+
+    reset_every: 3000
+
+    pause_refine_after_reset: 0
+
+    refine_scale2d_stop_iter: 0
+
+    grow_grad2d: 0.0003
+
+    grow_scale3d: 0.01
+
+    grow_scale2d: 0.05
+
+    prune_opa: 0.005
+
+    prune_scale3d: 0.1
+
+    prune_scale2d: 0.15
+
+    revised_opacity: false
+
+
+    # ============================================================
+    # ADAPTIVE FRAME SAMPLING
+    # ============================================================
+
+    adaptive_frame_sampling: true
+
+    hard_frame_probability: 0.35
+
+    uniform_frame_probability: 0.65
+
+    frame_loss_momentum: 0.90
