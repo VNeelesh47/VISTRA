@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local environment & heavy packages
+.env
+*.whl
+*.zip
+
+# Runtime data & models
+data/
+input/videos/*
+!input/videos/.gitkeep
+output/
+reconstruction/
+*.pt
+*.npz
+*.db
+*.ply
